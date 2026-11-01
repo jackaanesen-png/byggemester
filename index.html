@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Byggemester 2 · Tilkoblet</title>
+<style>
+:root{--bg:#0b1020;--panel:#152139;--line:#30415e;--txt:#f4f7ff;--muted:#a6b2c8;--mint:#72e0bd;--red:#ff9b9b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#203b55,transparent 42%),var(--bg);color:var(--txt);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1000px;margin:auto;padding:20px}.top,.row,.head{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:800;font-size:20px;display:flex;align-items:center;gap:10px}.logo{background:linear-gradient(135deg,var(--mint),#5b9ee7);color:#071521;border-radius:13px;padding:8px 12px;font-size:24px}.pill{font-size:11px;color:var(--mint);border:1px solid #37675f;border-radius:99px;padding:5px 10px}
+.hero{padding:30px 0 22px}.eyebrow{color:var(--mint);font-size:12px;letter-spacing:2px;font-weight:800}.hero h1{font-size:clamp(34px,6vw,54px);line-height:1.05;margin:10px 0}.hero p,.sub,.hint{color:var(--muted)}.hero p{max-width:620px}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}.card,.project{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}.card h2{margin:0 0 5px;font-size:19px}.sub{font-size:14px;margin:0 0 15px}
+textarea,input{width:100%;background:#0c1425;border:1px solid #3a4c6a;border-radius:11px;color:var(--txt);padding:13px;font:inherit}textarea{min-height:110px;resize:vertical}button{border:0;border-radius:11px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:var(--mint);color:#071b1a}.secondary,.template{background:#263651;color:var(--txt);border:1px solid #405270}.actions{margin-top:12px;justify-content:flex-start}.hint{font-size:12px;margin-top:10px}.templates{display:grid;grid-template-columns:1fr 1fr;gap:9px}.template{text-align:left;padding:12px}.template b,.template span{display:block}.template span{font-size:12px;color:var(--muted)}.template b{margin:4px 0}
+.section{margin-top:26px}.head h2{font-size:20px}.projects{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.project{min-height:125px}.project h3{font-size:15px;margin:8px 0 2px;overflow-wrap:anywhere}.project p{font-size:12px;color:var(--muted);margin:0;overflow-wrap:anywhere}.empty{grid-column:1/-1;text-align:center;padding:22px;border:1px dashed var(--line);border-radius:14px;color:var(--muted)}
+footer{text-align:center;color:#8190aa;font-size:12px;padding:30px 0}.auth{max-width:520px;margin:4px 0 20px}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.auth input{margin:5px 0 10px}.status{font-size:13px;color:var(--muted);margin-top:10px;overflow-wrap:anywhere}.status.error{color:var(--red)}.status.ok{color:var(--mint)}.hidden{display:none!important}.modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.dialog{width:min(460px,100%);background:#152139;border:1px solid var(--line);border-radius:18px;padding:20px}.dialog label{display:block;color:var(--muted);font-size:13px;margin:13px 0 5px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.projects{grid-template-columns:1fr 1fr}.wrap{padding:15px}}@media(max-width:430px){.projects,.templates,.authgrid{grid-template-columns:1fr}.pill{max-width:135px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top"><div class="brand"><span class="logo">⚒</span> BYGGEMESTER <span style="color:var(--mint)">2</span></div><span class="pill">SUPABASE · TILKOBLET</span></header>
+<section class="hero"><div class="eyebrow">DITT DIGITALE VERKSTED</div><h1>Gjør ideen din<br>om til et prosjekt.</h1><p>Planlegg nettsider, apper og digitale verktøy. Prosjektene dine lagres i databasen din når du er logget inn.</p></section>
+
+<section class="card auth" id="authCard">
+<h2 id="authTitle">Logg inn eller opprett konto</h2>
+<p class="sub">Bruk e-postadressen din for å lagre prosjektene på tvers av enheter.</p>
+<label for="email">E-post</label><input id="email" type="email" autocomplete="email" placeholder="deg@eksempel.no">
+<label for="password">Passord</label><input id="password" type="password" autocomplete="current-password" placeholder="Minst 6 tegn">
+<div class="authgrid"><button class="primary" id="login">Logg inn</button><button class="secondary" id="signup">Opprett konto</button></div>
+<div class="status" id="authStatus">Du må logge inn for å bruke skylagring.</div>
+</section>
+
+<div id="appArea" class="hidden">
+<div class="row" style="justify-content:flex-end;margin:0 0 12px"><span class="status ok" id="signedIn"></span><button class="secondary" id="logout">Logg ut</button></div>
+<div class="grid">
+<section class="card"><h2>Hva vil du bygge?</h2><p class="sub">Beskriv ideen med dine egne ord.</p><textarea id="idea" placeholder="For eksempel: Jeg vil lage en app der venner kan finne filmer å se sammen …"></textarea><div class="row actions"><button class="primary" id="createIdea">＋ Opprett prosjekt</button><button class="secondary" id="clear">Tøm</button></div><div class="hint">Prosjektene lagres i Supabase-kontoen din.</div></section>
+<section class="card"><h2>Start med en mal</h2><p class="sub">Velg et utgangspunkt.</p><div class="templates">
+<button class="template" data-type="Nettside"><span>🌐 NETTSIDE</span><b>En enkel nettside</b><span>Forside, informasjon og kontakt</span></button>
+<button class="template" data-type="Mobilapp"><span>📱 MOBILAPP</span><b>En app-idé</b><span>Skjermer, funksjoner og brukere</span></button>
+<button class="template" data-type="Nettbutikk"><span>🛍️ NETTBUTIKK</span><b>En liten butikk</b><span>Produkter og bestilling</span></button>
+<button class="template" data-type="Verktøy"><span>🧰 VERKTØY</span><b>Et digitalt verktøy</b><span>Oppgaver og arbeidsflyt</span></button>
+</div></section></div>
+
+<section class="section card" id="generatorCard">
+  <h2>Bygg et første utkast</h2>
+  <p class="sub">Beskriv nettsiden du vil lage. Byggemester lager en enkel, fungerende HTML-side som du kan forhåndsvise og laste ned. Denne første generatoren bruker maler og regler, ikke AI.</p>
+  <label for="genTitle">Navn på nettsiden</label>
+  <input id="genTitle" placeholder="For eksempel: Fjordglimt Frisør">
+  <label for="genDesc" style="display:block;color:var(--muted);font-size:13px;margin:12px 0 5px">Hva skal nettsiden gjøre?</label>
+  <textarea id="genDesc" placeholder="For eksempel: En moderne nettside for en frisørsalong med tjenester, priser, åpningstider og kontaktinformasjon."></textarea>
+  <div class="row actions"><button class="primary" id="generateSite">Bygg nettsiden</button><button class="secondary" id="downloadSite" disabled>Last ned HTML</button></div>
+  <div class="status" id="generatorStatus">Fyll inn navn og beskrivelse for å starte.</div>
+  <div id="previewWrap" class="hidden" style="margin-top:16px">
+    <h3 style="font-size:15px">Forhåndsvisning</h3>
+    <iframe id="sitePreview" title="Forhåndsvisning av generert nettside" sandbox="allow-scripts" style="width:100%;height:420px;background:white;border:1px solid var(--line);border-radius:12px"></iframe>
+  </div>
+</section>
+
+<section class="section"><div class="head"><h2>Prosjektene mine</h2><button class="secondary" id="new">＋ Nytt prosjekt</button></div><div class="projects" id="projects"><div class="empty">Laster prosjekter …</div></div></section>
+</div>
+<footer>Byggemester 2 · Databaselagring · AI er ikke aktivert ennå</footer>
+</main>
+<div class="modal" id="modal"><div class="dialog"><div class="row"><h2 style="margin-right:auto">Nytt prosjekt</h2><button class="secondary" id="close">✕</button></div><p class="sub">Gi prosjektet et navn og velg type.</p><label for="name">Prosjektnavn</label><input id="name" placeholder="For eksempel CineMatch"><label for="type">Prosjekttype</label><input id="type" placeholder="Nettside, app, butikk …"><div class="row actions" style="justify-content:flex-end"><button class="secondary" id="cancel">Avbryt</button><button class="primary" id="save">Lagre prosjekt</button></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+  const SUPABASE_URL = "https://ofbmdtkkevolubdlepld.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_l6VAIffDs1pBOZqLoB8mnQ_Dwa188l1";
+  const $ = id => document.getElementById(id);
+  const status = (message, kind="") => { $("authStatus").textContent=message; $("authStatus").className="status "+kind; };
+  if (!window.supabase || !window.supabase.createClient) {
+    status("Kunne ikke laste Supabase-biblioteket. Kontroller internettilkoblingen og åpne siden på nytt.", "error");
+    return;
+  }
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let currentUser = null;
+  let projects = [];
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function showApp(user) {
+    currentUser=user;
+    $("authCard").classList.add("hidden");
+    $("appArea").classList.remove("hidden");
+    $("signedIn").textContent="Innlogget: "+user.email;
+    loadProjects();
+  }
+  function showAuth() {
+    currentUser=null;
+    $("authCard").classList.remove("hidden");
+    $("appArea").classList.add("hidden");
+    $("projects").innerHTML='<div class="empty">Logg inn for å se prosjektene dine.</div>';
+  }
+  async function loadProjects() {
+    $("projects").innerHTML='<div class="empty">Laster prosjekter …</div>';
+    const {data,error}=await client.from("byggemester_projects")
+      .select("id,name,description,project_type,created_at")
+      .order("created_at",{ascending:false});
+    if(error) {
+      $("projects").innerHTML='<div class="empty">Kunne ikke hente prosjekter.</div>';
+      console.error(error);
+      alert("Feil ved lasting av prosjekter: "+error.message);
+      return;
+    }
+    projects=data||[];
+    draw();
+  }
+  function draw() {
+    const root=$("projects"); root.innerHTML="";
+    if(!projects.length){root.innerHTML='<div class="empty">Ingen prosjekter ennå. Opprett ditt første prosjekt ovenfor.</div>';return;}
+    projects.forEach(p=>{
+      const d=document.createElement("article"); d.className="project";
+      const type=p.project_type || "Prosjekt";
+      d.innerHTML='<div class="row"><span>⚒️</span><button class="secondary" data-del> Slett </button></div><h3>'+escapeHTML(p.name)+'</h3><p>'+escapeHTML(type)+' · Lagret i skyen</p>';
+      d.querySelector("[data-del]").addEventListener("click",()=>deleteProject(p.id));
+      root.appendChild(d);
+    });
+  }
+  async function createProject(name,type,description="") {
+    if(!currentUser){alert("Logg inn først.");return;}
+    const {error}=await client.from("byggemester_projects").insert({
+      user_id:currentUser.id,
+      name:name,
+      description:description,
+      project_type:type
+    });
+    if(error){alert("Kunne ikke lagre prosjektet: "+error.message);return;}
+    await loadProjects();
+  }
+  async function deleteProject(id) {
+    if(!confirm("Vil du slette dette prosjektet?")) return;
+    const {error}=await client.from("byggemester_projects").delete().eq("id",id);
+    if(error){alert("Kunne ikke slette prosjektet: "+error.message);return;}
+    await loadProjects();
+  }
+
+  let generatedHTML = "";
+  $("generateSite").onclick = () => {
+    const title = $("genTitle").value.trim();
+    const desc = $("genDesc").value.trim();
+    if (!title || !desc) {
+      $("generatorStatus").textContent = "Skriv inn både navn og beskrivelse først.";
+      $("generatorStatus").className = "status error";
+      return;
+    }
+    const safeTitle = escapeHTML(title);
+    const safeDesc = escapeHTML(desc);
+    const lower = desc.toLowerCase();
+    let sectionTitle = "Dette tilbyr vi";
+    let cards = [
+      ["Om oss", "Fortell besøkende hvem dere er, og hva som gjør tilbudet deres nyttig."],
+      ["Tjenester", "Beskriv de viktigste tjenestene eller funksjonene på en tydelig måte."],
+      ["Kontakt", "Legg inn e-post, telefon eller et kontaktskjema når du er klar."]
+    ];
+    if (/(butikk|selg|produkt|handle)/.test(lower)) {
+      sectionTitle = "Utvalgte produkter";
+      cards = [["Produkt 1","Skriv en kort beskrivelse og legg til pris."],["Produkt 2","Vis frem et annet produkt eller en kategori."],["Bestilling","Legg til informasjon om levering og betaling."]];
+    } else if (/(frisør|salong|behandling|timebestill)/.test(lower)) {
+      sectionTitle = "Våre behandlinger";
+      cards = [["Klipp","Beskriv klippetilbudet og hvem det passer for."],["Behandling","Fortell om behandlinger og priser."],["Bestill time","Legg inn telefonnummer eller lenke til timebestilling."]];
+    } else if (/(app|verktøy|planlegg|oppgave)/.test(lower)) {
+      sectionTitle = "Funksjoner";
+      cards = [["Oversikt","En tydelig startside med det viktigste samlet."],["Planlegging","Beskriv hvordan brukeren planlegger og organiserer."],["Min side","Et område for personlige valg og informasjon."]];
+    }
+    generatedHTML = `<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${safeTitle}</title><style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.6 system-ui,Arial,sans-serif;color:#182338;background:#f4f7fb}
+header{background:#10243b;color:white;padding:22px max(6vw,20px);display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{font-weight:800;font-size:20px}nav a{color:#d8f8ee;margin-left:16px;text-decoration:none}
+.hero{padding:76px max(6vw,20px);background:linear-gradient(130deg,#12314a,#246b70);color:white}
+.hero h1{font-size:clamp(36px,7vw,64px);line-height:1.05;max-width:780px;margin:0 0 18px}
+.hero p{font-size:18px;max-width:720px;color:#e2f2f1}
+main{max-width:1100px;margin:auto;padding:42px 20px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+article{background:white;padding:24px;border-radius:16px;box-shadow:0 8px 28px #1b355012}article h3{margin-top:0;color:#17635e}
+footer{padding:26px;text-align:center;background:#10243b;color:#d8e5ed}
+.button{display:inline-block;background:#75e2c1;color:#0c2c2b;padding:12px 18px;border-radius:9px;text-decoration:none;font-weight:700}
+</style></head><body>
+<header><div class="brand">${safeTitle}</div><nav><a href="#innhold">Info</a><a href="#kontakt">Kontakt</a></nav></header>
+<section class="hero"><h1>${safeTitle}</h1><p>${safeDesc}</p><a class="button" href="#kontakt">Ta kontakt</a></section>
+<main id="innhold"><h2>${sectionTitle}</h2><div class="cards">${cards.map(c=>`<article><h3>${c[0]}</h3><p>${c[1]}</p></article>`).join("")}</div>
+<section id="kontakt" style="margin-top:42px"><h2>Kontakt</h2><p>Legg inn kontaktinformasjonen din her før publisering.</p><a class="button" href="mailto:hei@eksempel.no">Send e-post</a></section></main>
+<footer>Laget med Byggemester · Bytt ut eksempeltekst og kontaktinfo før publisering</footer></body></html>`;
+    $("sitePreview").srcdoc = generatedHTML;
+    $("previewWrap").classList.remove("hidden");
+    $("downloadSite").disabled = false;
+    $("generatorStatus").textContent = "Førsteutkast laget! Se forhåndsvisningen. Du kan laste ned HTML-filen.";
+    $("generatorStatus").className = "status ok";
+  };
+  $("downloadSite").onclick = () => {
+    if (!generatedHTML) return;
+    const blob = new Blob([generatedHTML], {type:"text/html;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "mitt-prosjekt.html"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  $("login").onclick=async()=>{
+    const email=$("email").value.trim(), password=$("password").value;
+    if(!email||!password){status("Skriv inn både e-post og passord.","error");return;}
+    status("Logger inn …");
+    const {error}=await client.auth.signInWithPassword({email,password});
+    if(error){status(error.message,"error");return;}
+    status("Innlogging vellykket.","ok");
+  };
+  $("signup").onclick=async()=>{
+    const email=$("email").value.trim(), password=$("password").value;
+    if(!email||!password){status("Skriv inn både e-post og passord.","error");return;}
+    if(password.length<6){status("Passordet må være minst 6 tegn.","error");return;}
+    status("Oppretter konto …");
+    const {data,error}=await client.auth.signUp({email,password});
+    if(error){status(error.message,"error");return;}
+    if(data.session){status("Konto opprettet. Du er logget inn.","ok");}
+    else{status("Konto opprettet! Sjekk e-posten din og bekreft adressen før du logger inn.","ok");}
+  };
+  $("logout").onclick=async()=>{await client.auth.signOut();showAuth();};
+  $("new").onclick=()=>openModal();
+  $("close").onclick=closeModal; $("cancel").onclick=closeModal;
+  $("save").onclick=async()=>{const n=$("name").value.trim(),t=$("type").value.trim()||"Verktøy";if(!n){alert("Skriv inn et prosjektnavn.");return;}await createProject(n,t);closeModal();};
+  $("createIdea").onclick=async()=>{const v=$("idea").value.trim();if(!v){$("idea").focus();return;}const n=v.length>42?v.slice(0,42)+"…":v;await createProject(n,"Eget prosjekt",v);$("idea").value="";};
+  $("clear").onclick=()=>$("idea").value="";
+  document.querySelectorAll("[data-type]").forEach(b=>b.onclick=()=>openModal("Mitt nye "+b.dataset.type.toLowerCase(),b.dataset.type));
+  function openModal(n="",t=""){$("name").value=n;$("type").value=t;$("modal").classList.add("show");}
+  function closeModal(){$("modal").classList.remove("show");}
+  client.auth.onAuthStateChange((_event,session)=>{if(session?.user)showApp(session.user);else showAuth();});
+  client.auth.getSession().then(({data})=>{if(data.session?.user)showApp(data.session.user);else showAuth();});
+})();
+</script>
+</body></html>
